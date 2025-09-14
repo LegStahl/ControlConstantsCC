@@ -11,6 +11,8 @@
 #include <map>
 #include <mutex>
 #include <iomanip>
+#include <memory>
+#include <cstring>
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 #ifdef _WIN32
     #include <winsock2.h>
@@ -102,7 +104,7 @@ class ControlConstants
 		std::mutex mtx;
 		//Два первых адреса для чтения, два вторых для записи
 		uint16_t recommended_parametr[COUNT_OF_COMMAND] = {0x0001, 0x4001, 0x0006, 0x0008};
-		SOCKET socket_;
+		int socket_;
 		std::atomic<bool> is_it_run;//Переменная для отключения потока
 		std::thread reciever_thread;//Поток получатель 
 		ControlConstants();//Конструктор делаем приватным чтобы объект был только одним Singleton
@@ -116,7 +118,7 @@ class ControlConstants
 		uint8_t do_request(uint8_t TYPE_OF_REQUEST, request_t* data);//Данная функция используется пользователем библиотеки для того, чтобы отправить необходимый запрос
 																     //для этого используеются макросы WRITE_REQ и READ_REQ в TYPE_OF_REQUEST
 		void make_read_request (request_t* data, uint32_t dev_id, uint8_t TYPE_OF_COMMAND);//С помощью данной функции мы делаем запрос на чтение
-		void make_write_request (request_t* data,  uint32_t dev_id, uint8_t TYPE_OF_COMMAND, const uint8_t* data_to_write,  uint8_t size);//С помощью этой команды мы
+		void make_write_request (request_t* data,  uint32_t dev_id, uint8_t TYPE_OF_COMMAND, const uint8_t* data_to_write,  int16_t size);//С помощью этой команды мы
 																																		  //делаем запрос на запись
 		//uint8_t read_request(request_t& data);
 		

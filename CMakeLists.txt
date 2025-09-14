@@ -2,11 +2,10 @@ cmake_minimum_required(VERSION 3.10)
 project(protocol)
 
 
-foreach(OUTPUTCONFIG Debug Release RelWithDebInfo MinSizeRel)
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG_UPPER)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG_UPPER} 
-        ${CMAKE_SOURCE_DIR}/bin/${OUTPUTCONFIG})
-endforeach()
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+
 
 
 include_directories(${CMAKE_SOURCE_DIR}/include)

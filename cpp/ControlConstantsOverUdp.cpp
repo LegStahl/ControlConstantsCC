@@ -108,8 +108,9 @@ uint8_t ControlConstants::do_request(uint8_t TYPE_OF_REQUEST, request_t* data)
 	}
 	
 	uint8_t STATUS = FAILURE;
-	if(TYPE_OF_REQUEST == READ_REQ && (data->header & 0x0003) == 0)//Проверка запроса на чтение, не на запись и не ответ 
+	if(TYPE_OF_REQUEST == READ_REQ && (data->header & data_16_swap(0x0003)) == 0)//Проверка запроса на чтение, не на запись и не ответ 
 	{
+		std::cout << "INSIDE READ REQ " << std::endl;
 		std::shared_ptr<Device> temp_ptr = map_of_device[data->dev_id];
 		std::fill(data->param.data, data->param.data + LENGTH_DATA_PART, 0);//Для чтения заполняем нулями по протоколу
 		data->timestamp = (uint32_t)time(0);
@@ -130,9 +131,17 @@ uint8_t ControlConstants::do_request(uint8_t TYPE_OF_REQUEST, request_t* data)
 		}
 		
 	}
-	if(TYPE_OF_REQUEST == WRITE_REQ && (data->header & 0x0002) != 0)//Проверка запрос на запись, пока предположу, что запрос на запись это 0x0002
+	
+	if(TYPE_OF_REQUEST == WRITE_REQ && (data->header & data_16_swap(0x0002)) != 0)//Проверка запрос на запись, пока предположу, что запрос на запись это 0x0002
 	{
+		std::cout << "INSIDE WRITE REQ " << std::endl;
+		std::shared_ptr<Device> temp_ptr = map_of_device[data->dev_id];//Здесь уже ничего переворачивать не нужно, перевернули внутри make функций
+		data->timestamp = (uint32_t)time(0);
+		data->packet_number = temp_ptr->get_number_sent();
 		
+		temp_ptr->number_sent_up();
+		send_request(data);
+		STATUS = SUCCESS;
 	}
 	return STATUS;
 }
@@ -146,14 +155,16 @@ void ControlConstants::make_read_request(request_t* data, uint32_t dev_id, uint8
 	//data в param не заполняем для чтения, packet_number тоже не заполняем и временную метку поставим только во время отправки
 }
 
-void ControlConstants::make_write_request(request_t* data, uint32_t dev_id, uint8_t TYPE_OF_COMMAND, const uint8_t* data_to_write, uint8_t size)
+void ControlConstants::make_write_request(request_t* data, uint32_t dev_id, uint8_t TYPE_OF_COMMAND, const uint8_t* data_to_write, int16_t size)
 {
 	data->header = data_16_swap(0xcc32);//Header для запроса на чтение
 	data->dev_id = data_32_swap(dev_id);//Устанавливаем dev_id
 	if(TYPE_OF_COMMAND < COUNT_OF_COMMAND)
 		data->param.address = data_16_swap(recommended_parametr[TYPE_OF_COMMAND]);
-	for(uint8_t i = size - 1, j = 0; i >= 0; i--, j++)
+	
+	for(int8_t i = size - 1, j = 0; i >= 0; i--, j++)
 	{
+		
 		data->param.data[i] = data_to_write[j];//Записываем данные задом наперед
 	}
 }

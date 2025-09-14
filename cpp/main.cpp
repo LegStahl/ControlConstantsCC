@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	float d = 0;
 	while(1)
 	{
-		std::cout << "Program has started!" << std::endl;
+		std::cout << "Program has started!" << sizeof(SOCKET) << std::endl;
 		std::cin >> input;
 		std::cout << "Writen was " << input <<  std::endl;
 		if(input == '0')
