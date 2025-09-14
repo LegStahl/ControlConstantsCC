@@ -87,7 +87,8 @@ uint8_t ControlConstants::send_request(request_t* data)
 	std::cout << "SIZE OF ALL DATA " << sizeof(*data) << std::endl;
 	std::cout << "SIZE OF PARAM " << sizeof(data->param) << std::endl;
 	std::cout << "SIZE OF time " << sizeof(data->timestamp) << std::endl;
-	for (size_t i = 0; i < sizeof(*data); ++i) {
+	for (size_t i = 0; i < sizeof(*data); ++i) 
+	{
         std::cout << std::hex << std::uppercase 
                   << std::setw(2) << std::setfill('0')
                   << static_cast<int>(buffer[i]) << " ";
@@ -161,7 +162,10 @@ void ControlConstants::make_write_request(request_t* data, uint32_t dev_id, uint
 	data->dev_id = data_32_swap(dev_id);//Устанавливаем dev_id
 	if(TYPE_OF_COMMAND < COUNT_OF_COMMAND)
 		data->param.address = data_16_swap(recommended_parametr[TYPE_OF_COMMAND]);
-	
+	if(size > LENGTH_DATA_PART)
+	{
+		size = LENGTH_DATA_PART;
+	}
 	for(int8_t i = size - 1, j = 0; i >= 0; i--, j++)
 	{
 		
