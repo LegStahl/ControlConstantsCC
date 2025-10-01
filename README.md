@@ -18,22 +18,23 @@ cmake --build build --config=Release или Debug чтобы собрать пр
 Program module ControlConstantsOverUdp is used for communication with devices in network via UDP datagramms.
 The module consists two files .h where classes are described and .cpp where functions and methods are implemented.
 ### How to use:
-To send a request it is necessary to create and fill request_t through special methods "make_read_request" and "make_write_request"
-Sending this request is possible through method "do_request" params are MACRO which defines READING or WRITING and request_t that was created and initialized.
+To send a request it is necessary to create and fill request_t through special methods __"make_read_request"__ and __"make_write_request"__
+Sending this request is possible through method "do_request" params are MACRO which defines __READING__ or __WRITING__ and request_t that was created and initialized.
 "do_request" returns status of performing function, in request_t that was passed as param, will be new data in case of READING request 
 
-There is a reciever thread inside class "thread_recieve_data". There are special methods for opening this thread and closing it "stop_socket_and_thread" and "enable_socket_and_thread".
+There is a reciever thread inside class "thread_recieve_data". There are special methods for opening this thread and closing it __"stop_socket_and_thread"__ and __"enable_socket_and_thread"__.
 
-"enable_socket_and_thread" is private method that are called when func "get_ControlConstants" called. 
+__"enable_socket_and_thread"__ is private method that are called when func "get_ControlConstants" called. 
 
-In build/bin are executable code
-Чтобы собрать проект необходимо создать внутри protocol build
-To make project there is a need to make dir /build in /protocol
-then cmake -S . -B build to init project
-cmake --build build --config=Release or Debug to build project and to get executable
+- __To build a workplace__
+build/bin contains executable code
+1. To make project there is a need to make dir /build in /protocol `mkdir build`
+2. `cmake -S . -B build` to init project
+3. `cmake --build build --config=Release or Debug` to build project and to get executable
 
 ### SIMULATE
 To simulate a working device "main.py" is used. There are two address where data can be written through WRITE request and can be read through READ request.
+
 
 
 
