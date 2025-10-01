@@ -32,3 +32,7 @@ To make project there is a need to make dir /build in /protocol
 then cmake -S . -B build to init project
 cmake --build build --config=Release or Debug to build project and to get executable
 
+### SIMULATE
+To simulate a working device is main.py is used. There are two address where data can be written through WRITE request and can be read through READ request.
+
+
