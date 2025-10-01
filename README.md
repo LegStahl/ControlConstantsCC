@@ -29,13 +29,13 @@ __"enable_socket_and_thread"__ is private method that are called when func "get_
 build/bin contains executable code
 
 - __To build a workplace__
-
 1. To make project there is a need to make dir /build in /protocol `mkdir build`
 2. `cmake -S . -B build` to init project
 3. `cmake --build build --config=Release or Debug` to build project and to get executable
 
 ### SIMULATE
 To simulate a working device "main.py" is used. There are two address where data can be written through WRITE request and can be read through READ request.
+
 
 
 
