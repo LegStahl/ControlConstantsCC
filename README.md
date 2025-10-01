@@ -14,10 +14,10 @@ request_t будет содерджаться данные из устройст
 Чтобы собрать проект необходимо создать внутри protocol build
 Затем cmake -S . -B build проинициализировать проект
 cmake --build build --config=Release или Debug чтобы собрать проект
-### ENG VERSION DESCRIPTION
+## ENG VERSION DESCRIPTION
 Program module ControlConstantsOverUdp is used for communication with devices in network via UDP datagramms.
 The module consists two files .h where classes are described and .cpp where functions and methods are implemented.
-#### How to use:
+### How to use:
 To send a request it is necessary to create and fill request_t through special methods "make_read_request" and "make_write_request"
 Sending this request is possible through method "do_request" params are MACRO which defines READING or WRITING and request_t that was created and initialized.
 "do_request" returns status of performing function, in request_t that was passed as param, will be new data in case of READING request 
@@ -31,3 +31,4 @@ In build/bin are executable code
 To make project there is a need to make dir /build in /protocol
 then cmake -S . -B build to init project
 cmake --build build --config=Release or Debug to build project and to get executable
+
