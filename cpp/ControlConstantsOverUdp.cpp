@@ -1,5 +1,5 @@
 #include "ControlConstantsOverUdp.h"
-ControlConstants::ControlConstants() : is_it_run(true)
+ControlConstants::ControlConstants() 
 {
 	#ifdef _WIN32
 	if (WSAStartup(MAKEWORD(2,2), &wsa) != 0) {
@@ -7,12 +7,13 @@ ControlConstants::ControlConstants() : is_it_run(true)
         //return 1;
     }
 	#endif
+	is_it_run = true;
 	std::cout << "Constructor was called" << std::endl;
 	reciever_thread = std::thread(&ControlConstants::thread_recieve_data, this);
 	reciever_thread.detach();
 	socket_ = socket(AF_INET, SOCK_DGRAM, 0);
-	
 	if (socket_ < 0 ) {
+	
 		perror("socket failed");
 		is_it_run = false;
 	}
@@ -21,18 +22,17 @@ ControlConstants::ControlConstants() : is_it_run(true)
 ControlConstants::~ControlConstants()
 {
 	is_it_run = false;
-	
-	
 	CLOSESOCK(socket_);
 	#ifdef _WIN32
 	WSACleanup();
 	#endif
 }
 
-ControlConstants& ControlConstants::get_ControlConstants()
+ControlConstants* ControlConstants::get_ControlConstants()
 {
-	  static ControlConstants object;//Статические переменные инициализируются только один раз, значит вызов конструктора будет один
-      return object;
+	  static ControlConstants object;//Singleton obj
+	  object.enable_socket_and_thread();
+      return &object;
 }
 
 void ControlConstants::thread_recieve_data()
@@ -60,7 +60,7 @@ void ControlConstants::thread_recieve_data()
 			
 			request_t temp;
 			std::memcpy(&temp, buffer, sizeof(request_t));
-			if(map_of_device.count(temp.dev_id) == 0)//Чтобы сравнивать адреса за пределами данного программного модуля их необходимо будет переворачивать обратно
+			if(map_of_device.count(temp.dev_id) == 0)
 			{
 				std::cout << "Address from net : " << temp.dev_id << std::hex << "\n";
 				map_of_device[temp.dev_id] = std::make_shared<Device>(temp.dev_id);
@@ -73,6 +73,7 @@ void ControlConstants::thread_recieve_data()
 			std::cout << "Data was recieved!" << std::endl;
 		}
 	}
+	std::cout << "Thread was closed!" << std::endl;
 
 }
 
@@ -102,64 +103,68 @@ uint8_t ControlConstants::send_request(request_t* data)
 
 uint8_t ControlConstants::do_request(uint8_t TYPE_OF_REQUEST, request_t* data)
 {
-	std::lock_guard<std::mutex> lock(mtx);//Закрываем mutex на время действия функции
+	std::lock_guard<std::mutex> lock(mtx);
+	
 	if(map_of_device.count(data->dev_id) == 0)
 	{	
 		map_of_device[data->dev_id] = std::make_shared<Device>(data->dev_id);
 	}
 	
 	uint8_t STATUS = FAILURE;
-	if(TYPE_OF_REQUEST == READ_REQ && (data->header & data_16_swap(0x0003)) == 0)//Проверка запроса на чтение, не на запись и не ответ 
+	if (is_it_run)
 	{
-		std::cout << "INSIDE READ REQ " << std::endl;
-		std::shared_ptr<Device> temp_ptr = map_of_device[data->dev_id];
-		std::fill(data->param.data, data->param.data + LENGTH_DATA_PART, 0);//Для чтения заполняем нулями по протоколу
-		data->timestamp = (uint32_t)time(0);
-		data->packet_number = temp_ptr->get_number_sent();
-		temp_ptr->recieved = false;//
-		temp_ptr->number_sent_up();
-		send_request(data);
-		time_t seconds = time(0);
-	
-		while(((time(0) - seconds) <= 1) && !(temp_ptr->recieved))
+		if (TYPE_OF_REQUEST == READ_REQ && (data->header & data_16_swap(0x0003)) == 0)//Check header and type_of_request
 		{
+			std::cout << "INSIDE READ REQ " << std::endl;
+			std::shared_ptr<Device> temp_ptr = map_of_device[data->dev_id];
+			std::fill(data->param.data, data->param.data + LENGTH_DATA_PART, 0);//for reading filling it with zeros
+			data->timestamp = (uint32_t)time(0);
+			data->packet_number = temp_ptr->get_number_sent();
+			temp_ptr->recieved = false;//
+			temp_ptr->number_sent_up();
+			send_request(data);
+			time_t seconds = time(0);
+
+			while (((time(0) - seconds) <= 1) && !(temp_ptr->recieved))
+			{
+			}
+			if (temp_ptr->recieved)
+			{
+				std::cout << "Success in recieveng data!" << std::endl;
+				*data = temp_ptr->recieved_data;
+				STATUS = SUCCESS;
+			}
+
 		}
-		if(temp_ptr->recieved)
+
+		if (TYPE_OF_REQUEST == WRITE_REQ && (data->header & data_16_swap(0x0002)) != 0)//Now writing is 0x0002 
 		{
-			std::cout << "Success in recieveng data!" << std::endl;
-			*data = temp_ptr->recieved_data;
+			std::cout << "INSIDE WRITE REQ " << std::endl;
+			std::shared_ptr<Device> temp_ptr = map_of_device[data->dev_id];
+			data->timestamp = (uint32_t)time(0);
+			data->packet_number = temp_ptr->get_number_sent();
+
+			temp_ptr->number_sent_up();
+			send_request(data);
 			STATUS = SUCCESS;
 		}
-		
-	}
-	
-	if(TYPE_OF_REQUEST == WRITE_REQ && (data->header & data_16_swap(0x0002)) != 0)//Проверка запрос на запись, пока предположу, что запрос на запись это 0x0002
-	{
-		std::cout << "INSIDE WRITE REQ " << std::endl;
-		std::shared_ptr<Device> temp_ptr = map_of_device[data->dev_id];//Здесь уже ничего переворачивать не нужно, перевернули внутри make функций
-		data->timestamp = (uint32_t)time(0);
-		data->packet_number = temp_ptr->get_number_sent();
-		
-		temp_ptr->number_sent_up();
-		send_request(data);
-		STATUS = SUCCESS;
 	}
 	return STATUS;
 }
 
 void ControlConstants::make_read_request(request_t* data, uint32_t dev_id, uint8_t TYPE_OF_COMMAND)
 {
-	data->header = data_16_swap(0xcc30);//Header для запроса на чтение
-	data->dev_id = data_32_swap(dev_id);//Устанавливаем dev_id
+	data->header = data_16_swap(0xcc30);
+	data->dev_id = data_32_swap(dev_id);
 	if(TYPE_OF_COMMAND < COUNT_OF_COMMAND)
 		data->param.address = data_16_swap(recommended_parametr[TYPE_OF_COMMAND]);
-	//data в param не заполняем для чтения, packet_number тоже не заполняем и временную метку поставим только во время отправки
+	
 }
 
 void ControlConstants::make_write_request(request_t* data, uint32_t dev_id, uint8_t TYPE_OF_COMMAND, const uint8_t* data_to_write, int16_t size)
 {
-	data->header = data_16_swap(0xcc32);//Header для запроса на чтение
-	data->dev_id = data_32_swap(dev_id);//Устанавливаем dev_id
+	data->header = data_16_swap(0xcc32);//Header for writing
+	data->dev_id = data_32_swap(dev_id);//Set dev_id
 	if(TYPE_OF_COMMAND < COUNT_OF_COMMAND)
 		data->param.address = data_16_swap(recommended_parametr[TYPE_OF_COMMAND]);
 	if(size > LENGTH_DATA_PART)
@@ -169,7 +174,7 @@ void ControlConstants::make_write_request(request_t* data, uint32_t dev_id, uint
 	for(int8_t i = size - 1, j = 0; i >= 0; i--, j++)
 	{
 		
-		data->param.data[i] = data_to_write[j];//Записываем данные задом наперед
+		data->param.data[i] = data_to_write[j];//Writes data in reverse mode
 	}
 }
 
@@ -184,6 +189,40 @@ uint32_t  ControlConstants::data_32_swap(uint32_t data)
 uint16_t  ControlConstants::data_16_swap(uint16_t data)
  {
     return (data >> 8) | (data << 8);         
+}
+
+bool ControlConstants::is_working() const
+{	
+	return is_it_run;
+}
+
+void ControlConstants::stop_socket_and_thread()
+{
+	if (is_it_run)
+	{
+		is_it_run = false;
+
+
+		std::cout << " was closed "  << CLOSESOCK(socket_) << std::endl;
+
+	}
+}
+
+void ControlConstants::enable_socket_and_thread()
+{
+	if(!is_it_run)
+	{
+		std::cout << "Enable was called" << std::endl;
+		is_it_run = true;
+		reciever_thread = std::thread(&ControlConstants::thread_recieve_data, this);
+		reciever_thread.detach();
+		socket_ = socket(AF_INET, SOCK_DGRAM, 0);
+		std::cout << "Socket was equal " << socket_ << std::endl;
+		if (socket_ < 0) 
+		{
+			is_it_run = false;
+		}
+	}
 }
 
 Device::Device()
