@@ -31,7 +31,8 @@ It is a __Param__ description below.
 
 > [!NOTE]
 > Writing to protected addresses can cause frizzing device.
-> Data that can be in double type of data.
+>
+>  Data can be in double type of data.
 
 ### How to use:
 To send a request it is necessary to create and fill request_t through special methods __"make_read_request"__ and __"make_write_request"__
@@ -69,6 +70,7 @@ Here is the first write request.
 Here is the second read request.
 
 ![first_read](images/first_write.png)
+
 
 
 
