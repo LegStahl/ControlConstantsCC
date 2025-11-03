@@ -69,7 +69,8 @@ Here is the first write request.
 
 Here is the second read request.
 
-![first_read](images/first_write.png)
+![first_read](images/second_read.png)
+
 
 
 
