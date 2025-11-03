@@ -17,12 +17,13 @@ cmake --build build --config=Release или Debug чтобы собрать пр
 ## ENG VERSION DESCRIPTION
 Program module ControlConstantsOverUdp is used for communication with devices in network via UDP datagramms.
 The module consists two files .h where classes are described and .cpp where functions and methods are implemented.
-
+Below is the struct of request represented and brief description of each value. 
 |Header|devId|Unix TimeStamp|Packet number|Param|
 |-|--------|---|---|---|
 |2 bytes|4 bytes|4 bytes|2 bytes|10 bytes|
 |Describes name of protocol, version and type of request:read, answer, write|IP address of device|Timestamp|Number of packet to track packets| In this field data is stored|
 
+It is a __Param__ description below. 
 |Address|DATA|
 |-|--------|
 |2 bytes|8 bytes|
@@ -30,6 +31,7 @@ The module consists two files .h where classes are described and .cpp where func
 
 > [!NOTE]
 > Writing to protected addresses can cause frizzing device.
+> Data that can be in double type of data.
 
 ### How to use:
 To send a request it is necessary to create and fill request_t through special methods __"make_read_request"__ and __"make_write_request"__
@@ -67,6 +69,7 @@ Here is the first write request.
 Here is the second read request.
 
 ![first_read](images/first_write.png)
+
 
 
 
