@@ -17,6 +17,20 @@ cmake --build build --config=Release или Debug чтобы собрать пр
 ## ENG VERSION DESCRIPTION
 Program module ControlConstantsOverUdp is used for communication with devices in network via UDP datagramms.
 The module consists two files .h where classes are described and .cpp where functions and methods are implemented.
+
+|Header|devId|Unix TimeStamp|Packet number|Param|
+|-|--------|---|---|---|
+|2 bytes|4 bytes|4 bytes|2 bytes|10 bytes|
+|Describes name of protocol, version and type of request:read, answer, write|IP address of device|Timestamp|Number of packet to track packets| In this field data is stored|
+
+|Address|DATA|
+|-|--------|
+|2 bytes|8 bytes|
+|Address inside device where to write or read data|READ req: data must be zeroes and in answer request here will be data from address WRITE req: data that wiil be written to a ceratin address |
+
+> [!NOTE]
+> Writing to protected addresses can cause frizzing device.
+
 ### How to use:
 To send a request it is necessary to create and fill request_t through special methods __"make_read_request"__ and __"make_write_request"__
 Sending this request is possible through method "do_request" params are MACRO which defines __READING__ or __WRITING__ and request_t that was created and initialized.
@@ -35,6 +49,24 @@ build/bin contains executable code
 
 ### SIMULATE
 To simulate a working device "main.py" is used. There are two address where data can be written through WRITE request and can be read through READ request.
+
+### RESULTS
+
+Here are the results of requests that can be seen in wireshark.
+
+![wireshar example](images/wireshark.png)
+
+Here is the first read request.
+
+![first_read](images/first_read.png)
+
+Here is the first write request.
+
+![first_read](images/first_write.png)
+
+Here is the second read request.
+
+![first_read](images/first_write.png)
 
 
 
