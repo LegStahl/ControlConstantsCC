@@ -50,9 +50,9 @@ int main(int argc, char* argv[])
 				test.hex = test_data_in_int;
 				std::cout << "DATA IN MAIN data " << test.data << "\n";
 				std::cout << "DATA IN MAIN hex " << test.hex << "\n";
-				std::cout << "DATA IN MAIN te1 " << test_data_in_int << "\n";
-				std::cout << "DATA IN MAIN d " << d << "\n";
-				std::cout << "DATA IN MAIN te " << test_data << "\n";
+				std::cout << "DATA IN MAIN recieved " << test_data_in_int << "\n";
+				//std::cout << "DATA IN MAIN d " << d << "\n";
+				//std::cout << "DATA IN MAIN te " << test_data << "\n";
 			
 			}
 			
